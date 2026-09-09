@@ -1,0 +1,492 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mein Hub</title>
+<!-- GitHub Pages ready: all app files use relative paths. -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@500;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+
+</head>
+<body>
+
+<div id="loading-screen">Lädt…</div>
+
+<!-- ================= AUTH SCREEN ================= -->
+<div id="auth-screen">
+  <div class="glow glow1"></div>
+  <div class="glow glow2"></div>
+  <div class="auth-card">
+    <div id="login-form">
+      <h1 class="auth-headline">Willkommen zurück</h1>
+      <p class="auth-sub">Melde dich an, um zu deinem Hub zu kommen.</p>
+      <div class="auth-error" id="login-error"></div>
+      <div class="field"><label for="login-username">Benutzername</label><input type="text" id="login-username" autocomplete="username"></div>
+      <div class="field"><label for="login-pass">Passwort</label><input type="password" id="login-pass" autocomplete="current-password"></div>
+      <button class="btn-primary" onclick="handleLogin()">Anmelden</button>
+      <div class="auth-toggle">Noch kein Konto? <button onclick="showRegister()">Registrieren</button></div>
+    </div>
+    <div id="register-form" style="display:none;">
+      <h1 class="auth-headline">Konto erstellen</h1>
+      <p class="auth-sub">Leg dir ein Konto für deinen Hub an. Du bekommst automatisch eine eigene Nutzer-ID.</p>
+      <div class="auth-error" id="register-error"></div>
+      <div class="field"><label for="reg-username">Benutzername</label><input type="text" id="reg-username" autocomplete="username"></div>
+      <div class="field"><label for="reg-pass">Passwort</label><input type="password" id="reg-pass" autocomplete="new-password"></div>
+      <button class="btn-primary" onclick="handleRegister()">Konto erstellen</button>
+      <div class="auth-toggle">Schon registriert? <button onclick="showLogin()">Zum Login</button></div>
+    </div>
+  </div>
+</div>
+
+<!-- ================= APP SCREEN ================= -->
+<div id="app-screen">
+  <div class="shell">
+    <div class="rail">
+      <div class="rail-logo"><span class="dot"></span> Mein Hub</div>
+      <div id="dev-pill" class="dev-pill" style="display:none;">Dev Build</div>
+      <nav>
+        <button class="rail-btn active" data-tab="home" onclick="switchTab('home')"><span class="ico">⌂</span><span class="label">Home</span></button>
+        <button class="rail-btn" data-tab="todo" onclick="switchTab('todo')"><span class="ico">✓</span><span class="label">To-Do</span></button>
+        <button class="rail-btn" data-tab="kpop" onclick="switchTab('kpop')"><span class="ico">♪</span><span class="label">K-Pop Idols</span></button>
+        <button class="rail-btn" data-tab="kalender" onclick="switchTab('kalender')"><span class="ico">▤</span><span class="label">Kalender</span><span class="badge-count" id="inbox-badge" style="display:none;">0</span></button>
+        <button class="rail-btn" data-tab="users" id="nav-users" style="display:none;" onclick="switchTab('users')"><span class="ico">⚙</span><span class="label">Nutzer</span></button>
+      </nav>
+      <div class="rail-spacer"></div>
+      <div class="rail-user">
+        <div class="rail-user-name" id="rail-username">–</div>
+        <div class="rail-user-id" id="rail-userid">–</div>
+        <button class="logout-btn" onclick="handleLogout()">Abmelden</button>
+      </div>
+    </div>
+
+    <div class="content">
+
+      <!-- HOME -->
+      <div class="panel active" id="panel-home">
+        <h2 class="panel-title">Übersicht</h2>
+        <p class="panel-desc">Kurzer Blick auf deine Listen.</p>
+        <div class="stat-grid">
+          <div class="stat-card"><div class="stat-num" id="stat-open">0</div><div class="stat-label">Offene Aufgaben</div></div>
+          <div class="stat-card"><div class="stat-num" id="stat-progress">0</div><div class="stat-label">In Bearbeitung</div></div>
+          <div class="stat-card"><div class="stat-num" id="stat-done">0</div><div class="stat-label">Erledigt</div></div>
+          <div class="stat-card"><div class="stat-num" id="stat-kpop">0</div><div class="stat-label">K-Pop Einträge</div></div>
+          <div class="stat-card"><div class="stat-num" id="stat-events">0</div><div class="stat-label">Anstehende Termine</div></div>
+        </div>
+      </div>
+
+      <!-- TODO -->
+      <div class="panel" id="panel-todo">
+        <h2 class="panel-title">To-Do Liste</h2>
+        <p class="panel-desc">Priorität 1 = kritisch, Priorität 4 = niedrig.</p>
+        <div id="todo-readonly-note" class="readonly-note" style="display:none;">Nur der Dev-Account kann diese Liste bearbeiten. Du siehst die aktuelle Ansicht.</div>
+        <div class="form-card" id="todo-form-card">
+          <div class="form-row">
+            <div class="field"><label>Titel</label><input type="text" id="todo-title"></div>
+            <div class="field" style="max-width:140px;">
+              <label>Priorität</label>
+              <select id="todo-prio">
+                <option value="1">1 – Kritisch</option>
+                <option value="2">2 – Hoch</option>
+                <option value="3" selected>3 – Mittel</option>
+                <option value="4">4 – Niedrig</option>
+              </select>
+            </div>
+            <div class="field" style="max-width:170px;">
+              <label>Status</label>
+              <select id="todo-status">
+                <option value="offen" selected>Offen</option>
+                <option value="progress">In Bearbeitung</option>
+                <option value="done">Erledigt</option>
+              </select>
+            </div>
+          </div>
+          <div class="field" style="margin-bottom:12px;"><label>Beschreibung</label><textarea id="todo-desc"></textarea></div>
+          <button class="btn-add" onclick="addTodo()">Aufgabe hinzufügen</button>
+        </div>
+        <div id="todo-list"></div>
+      </div>
+
+      <!-- KPOP -->
+      <div class="panel" id="panel-kpop">
+        <h2 class="panel-title">K-Pop Idols meiner Freunde</h2>
+        <p class="panel-desc">Wer steht auf wen.</p>
+        <div id="kpop-readonly-note" class="readonly-note" style="display:none;">Nur der Dev-Account kann diese Liste bearbeiten. Du siehst die aktuelle Ansicht.</div>
+        <div class="form-card" id="kpop-form-card">
+          <div class="form-row">
+            <div class="field"><label>Freund/in</label><input type="text" id="kpop-friend"></div>
+            <div class="field"><label>Lieblings-Idol</label><input type="text" id="kpop-idol"></div>
+            <div class="field"><label>Gruppe</label><input type="text" id="kpop-group"></div>
+          </div>
+          <div class="field" style="margin-bottom:12px;"><label>Notiz (optional)</label><textarea id="kpop-note"></textarea></div>
+          <button class="btn-add" onclick="addKpop()">Eintrag hinzufügen</button>
+        </div>
+        <div class="kpop-grid" id="kpop-list"></div>
+      </div>
+
+      <!-- KALENDER -->
+      <div class="panel" id="panel-kalender">
+        <h2 class="panel-title">Kalender</h2>
+        <p class="panel-desc">Deine Termine und geteilte Kalender.</p>
+
+        <div id="inbox-section" style="display:none;">
+          <div class="section-heading">Posteingang</div>
+          <div id="inbox-list"></div>
+        </div>
+
+        <div class="cal-toolbar">
+          <select id="cal-view-select" onchange="onViewChange()"></select>
+          <div class="week-nav">
+            <button class="week-nav-btn" onclick="changeWeek(-1)">‹</button>
+            <div class="week-nav-label" id="week-range-label">–</div>
+            <button class="week-nav-btn" onclick="changeWeek(1)">›</button>
+            <button class="week-nav-today" onclick="goToday()">Heute</button>
+          </div>
+        </div>
+
+        <div class="week-wrap"><div class="week-table" id="week-grid"></div></div>
+
+        <div class="section-heading" id="agenda-heading">Meine Termine (diese Woche)</div>
+        <div id="agenda-list"></div>
+
+        <div id="add-event-section">
+          <div class="section-heading">Neuer Termin</div>
+          <div class="form-card">
+            <div class="form-row">
+              <div class="field"><label>Titel</label><input type="text" id="event-title" placeholder="z. B. Arbeit"></div>
+              <div class="field" style="max-width:160px;"><label>Datum</label><input type="date" id="event-date"></div>
+            </div>
+            <div class="form-row">
+              <div class="field"><label>Von</label><input type="time" id="event-start" value="08:00"></div>
+              <div class="field"><label>Bis</label><input type="time" id="event-end" value="17:00"></div>
+            </div>
+            <div class="field" style="margin-bottom:12px;"><label>Beschreibung (optional)</label><textarea id="event-desc"></textarea></div>
+            <button class="btn-add" onclick="addEvent()">Termin hinzufügen</button>
+          </div>
+        </div>
+
+        <div class="section-heading">Kalender teilen</div>
+        <p class="section-sub">Trag Benutzername und Nutzer-ID der Person ein, die deinen Kalender sehen soll. Sie bekommt eine Einladung in ihren Posteingang.</p>
+        <div class="form-card">
+          <div class="form-row">
+            <div class="field"><label>Benutzername</label><input type="text" id="invite-username"></div>
+            <div class="field"><label>Nutzer-ID</label><input type="text" id="invite-userid"></div>
+          </div>
+          <button class="btn-add secondary" onclick="sendInvite()">Zu meinem Kalender einladen</button>
+        </div>
+        <div id="access-list"></div>
+      </div>
+
+      <!-- USERS (DEV) -->
+      <div class="panel" id="panel-users">
+        <h2 class="panel-title">Nutzerverwaltung</h2>
+        <p class="panel-desc">Bestimme, welche Tabs jeder Nutzer sehen kann.</p>
+        <div id="users-list"></div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<script>
+  // ---------- Konstanten ----------
+  const DEV_USERNAME = "niclas";
+  const DEV_PASSWORD = "JissoDaGoat09!_";
+  const DEV_ID = "000001";
+  const STORAGE_PREFIX = "meinhub_";
+
+  let currentUser = null; // {username, id, role, tabs}
+  let todos = [];
+  let kpopEntries = [];
+  let calendars = {};       // { username: [events] }
+  let invites = [];         // [{id, fromUsername, fromId, toUsername, toId, status}]
+  let allUsers = [];        // users-db cache
+
+  // ---------- Storage Helfer (lokaler Browser-Speicher) ----------
+  async function storageGet(key, fallback){
+    try{
+      const raw = localStorage.getItem(STORAGE_PREFIX + key);
+      return raw !== null ? JSON.parse(raw) : fallback;
+    }catch(e){ console.error("storageGet fehlgeschlagen:", key, e); return fallback; }
+  }
+  async function storageSet(key, value){
+    try{ localStorage.setItem(STORAGE_PREFIX + key, JSON.stringify(value)); return true; }
+    catch(e){ console.error("storageSet fehlgeschlagen:", key, e); return false; }
+  }
+  async function storageDelete(key){
+    try{ localStorage.removeItem(STORAGE_PREFIX + key); }catch(e){}
+  }
+
+  // ---------- Init / Session ----------
+  window.addEventListener('load', init);
+
+  async function init(){
+    const session = await storageGet('session', null);
+    if(session){
+      if(session.type === 'dev'){
+        currentUser = {username: "Niclas", id: DEV_ID, role: "dev"};
+        await enterApp();
+        document.getElementById('loading-screen').style.display = 'none';
+        return;
+      }
+      if(session.type === 'user'){
+        const users = await storageGet('users-db', []);
+        const u = users.find(x => x.username.toLowerCase() === session.username.toLowerCase());
+        if(u){
+          currentUser = {username: u.username, id: u.id, role: "user", tabs: u.tabs};
+          await enterApp();
+          document.getElementById('loading-screen').style.display = 'none';
+          return;
+        }
+      }
+    }
+    document.getElementById('loading-screen').style.display = 'none';
+    document.getElementById('auth-screen').style.display = 'flex';
+  }
+
+  function generateUserId(existingUsers){
+    let id;
+    const taken = new Set(existingUsers.map(u => u.id).concat([DEV_ID]));
+    do{ id = String(Math.floor(100000 + Math.random() * 900000)); }while(taken.has(id));
+    return id;
+  }
+
+  // ---------- Auth UI ----------
+  function showRegister(){ document.getElementById('login-form').style.display = 'none'; document.getElementById('register-form').style.display = 'block'; }
+  function showLogin(){ document.getElementById('register-form').style.display = 'none'; document.getElementById('login-form').style.display = 'block'; }
+  function showAuthError(id, msg){ const el = document.getElementById(id); el.textContent = msg; el.style.display = 'block'; }
+  function hideAuthErrors(){ document.getElementById('login-error').style.display = 'none'; document.getElementById('register-error').style.display = 'none'; }
+
+  async function handleLogin(){
+    hideAuthErrors();
+    const username = document.getElementById('login-username').value.trim();
+    const pass = document.getElementById('login-pass').value;
+    if(!username || !pass){ showAuthError('login-error', 'Bitte Benutzername und Passwort eingeben.'); return; }
+
+    if(username.toLowerCase() === DEV_USERNAME && pass === DEV_PASSWORD){
+      currentUser = {username: "Niclas", id: DEV_ID, role: "dev"};
+      await storageSet('session', {type: 'dev'});
+      await enterApp();
+      return;
+    }
+    const users = await storageGet('users-db', []);
+    const match = users.find(u => u.username.toLowerCase() === username.toLowerCase() && u.password === pass);
+    if(!match){ showAuthError('login-error', 'Benutzername oder Passwort ist falsch.'); return; }
+    currentUser = {username: match.username, id: match.id, role: "user", tabs: match.tabs};
+    await storageSet('session', {type: 'user', username: match.username});
+    await enterApp();
+  }
+
+  async function handleRegister(){
+    hideAuthErrors();
+    const username = document.getElementById('reg-username').value.trim();
+    const pass = document.getElementById('reg-pass').value;
+    if(!username || !pass){ showAuthError('register-error', 'Bitte Benutzername und Passwort eingeben.'); return; }
+    if(username.toLowerCase() === DEV_USERNAME){ showAuthError('register-error', 'Dieser Benutzername ist reserviert.'); return; }
+
+    const users = await storageGet('users-db', []);
+    if(users.some(u => u.username.toLowerCase() === username.toLowerCase())){
+      showAuthError('register-error', 'Dieser Benutzername ist bereits vergeben.');
+      return;
+    }
+    const newUser = {username, password: pass, id: generateUserId(users), tabs: {todo: true, kpop: true, calendar: true}};
+    users.push(newUser);
+    await storageSet('users-db', users);
+
+    currentUser = {username: newUser.username, id: newUser.id, role: "user", tabs: newUser.tabs};
+    await storageSet('session', {type: 'user', username: newUser.username});
+    await enterApp();
+  }
+
+  async function handleLogout(){
+    await storageDelete('session');
+    currentUser = null;
+    document.getElementById('app-screen').style.display = 'none';
+    document.getElementById('auth-screen').style.display = 'flex';
+    document.getElementById('login-username').value = '';
+    document.getElementById('login-pass').value = '';
+    hideAuthErrors();
+    showLogin();
+  }
+
+  // ---------- App ----------
+  async function enterApp(){
+    document.getElementById('auth-screen').style.display = 'none';
+    document.getElementById('app-screen').style.display = 'block';
+
+    weekOffset = 0;
+    calendarViewOwner = null;
+
+    const isDev = currentUser.role === 'dev';
+    document.getElementById('rail-username').textContent = currentUser.username;
+    document.getElementById('rail-userid').textContent = 'ID: ' + currentUser.id;
+    document.getElementById('dev-pill').style.display = isDev ? 'block' : 'none';
+    document.getElementById('nav-users').style.display = isDev ? 'flex' : 'none';
+
+    document.querySelector('[data-tab="todo"]').style.display = (isDev || currentUser.tabs.todo) ? 'flex' : 'none';
+    document.querySelector('[data-tab="kpop"]').style.display = (isDev || currentUser.tabs.kpop) ? 'flex' : 'none';
+    document.querySelector('[data-tab="kalender"]').style.display = (isDev || currentUser.tabs.calendar) ? 'flex' : 'none';
+
+    document.getElementById('todo-form-card').style.display = isDev ? 'block' : 'none';
+    document.getElementById('todo-readonly-note').style.display = isDev ? 'none' : 'block';
+    document.getElementById('kpop-form-card').style.display = isDev ? 'block' : 'none';
+    document.getElementById('kpop-readonly-note').style.display = isDev ? 'none' : 'block';
+
+    todos = await storageGet('todos', []);
+    kpopEntries = await storageGet('kpop-list', []);
+    calendars = await storageGet('calendars', {});
+    invites = await storageGet('calendar-invites', []);
+    allUsers = await storageGet('users-db', []);
+
+    renderTodos();
+    renderKpop();
+    renderCalendarArea();
+    if(isDev) renderUsersTab();
+    renderHomeStats();
+    switchTab('home');
+  }
+
+  function switchTab(tab){
+    document.querySelectorAll('.rail-btn').forEach(b => b.classList.toggle('active', b.dataset.tab === tab));
+    document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+    document.getElementById('panel-' + tab).classList.add('active');
+    if(tab === 'home') renderHomeStats();
+  }
+
+  // ---------- To-Do ----------
+  const statusInfo = {
+    offen:{label:"Offen", color:"var(--muted)"},
+    progress:{label:"In Bearbeitung", color:"var(--warning)"},
+    done:{label:"Erledigt", color:"var(--success)"}
+  };
+  async function addTodo(){
+    const title = document.getElementById('todo-title').value.trim();
+    const desc = document.getElementById('todo-desc').value.trim();
+    const prio = parseInt(document.getElementById('todo-prio').value, 10);
+    const status = document.getElementById('todo-status').value;
+    if(!title) return;
+    todos.push({id: Date.now().toString(36), title, description: desc, priority: prio, status});
+    await storageSet('todos', todos);
+    document.getElementById('todo-title').value = '';
+    document.getElementById('todo-desc').value = '';
+    document.getElementById('todo-prio').value = '3';
+    document.getElementById('todo-status').value = 'offen';
+    renderTodos(); renderHomeStats();
+  }
+  async function updateTodoStatus(id, newStatus){
+    const t = todos.find(x => x.id === id);
+    if(!t) return;
+    t.status = newStatus;
+    await storageSet('todos', todos);
+    renderTodos(); renderHomeStats();
+  }
+  async function deleteTodo(id){
+    todos = todos.filter(x => x.id !== id);
+    await storageSet('todos', todos);
+    renderTodos(); renderHomeStats();
+  }
+  function renderTodos(){
+    const isDev = currentUser.role === 'dev';
+    const list = document.getElementById('todo-list');
+    if(todos.length === 0){ list.innerHTML = '<div class="empty-state">Noch keine Aufgaben vorhanden.</div>'; return; }
+    const sorted = [...todos].sort((a,b) => a.priority - b.priority);
+    list.innerHTML = sorted.map(t => {
+      const st = statusInfo[t.status] || statusInfo.offen;
+      const statusControl = isDev
+        ? `<select class="status-select" onchange="updateTodoStatus('${t.id}', this.value)">
+             <option value="offen" ${t.status==='offen'?'selected':''}>Offen</option>
+             <option value="progress" ${t.status==='progress'?'selected':''}>In Bearbeitung</option>
+             <option value="done" ${t.status==='done'?'selected':''}>Erledigt</option>
+           </select>`
+        : `<span class="status-pill"><span class="status-dot" style="background:${st.color}"></span>${st.label}</span>`;
+      return `
+        <div class="todo-item p${t.priority}">
+          <div class="prio-num">${t.priority}</div>
+          <div class="todo-body">
+            <div class="todo-title">${escapeHtml(t.title)}</div>
+            ${t.description ? `<div class="todo-desc">${escapeHtml(t.description)}</div>` : ''}
+            <div class="todo-meta">${statusControl}</div>
+          </div>
+          ${isDev ? `<button class="del-btn" onclick="deleteTodo('${t.id}')" title="Löschen">✕</button>` : ''}
+        </div>`;
+    }).join('');
+  }
+
+  // ---------- K-Pop ----------
+  async function addKpop(){
+    const friend = document.getElementById('kpop-friend').value.trim();
+    const idol = document.getElementById('kpop-idol').value.trim();
+    const group = document.getElementById('kpop-group').value.trim();
+    const note = document.getElementById('kpop-note').value.trim();
+    if(!friend || !idol) return;
+    kpopEntries.push({id: Date.now().toString(36), friend, idol, group, note});
+    await storageSet('kpop-list', kpopEntries);
+    document.getElementById('kpop-friend').value = '';
+    document.getElementById('kpop-idol').value = '';
+    document.getElementById('kpop-group').value = '';
+    document.getElementById('kpop-note').value = '';
+    renderKpop(); renderHomeStats();
+  }
+  async function deleteKpop(id){
+    kpopEntries = kpopEntries.filter(x => x.id !== id);
+    await storageSet('kpop-list', kpopEntries);
+    renderKpop(); renderHomeStats();
+  }
+  function renderKpop(){
+    const isDev = currentUser.role === 'dev';
+    const grid = document.getElementById('kpop-list');
+    if(kpopEntries.length === 0){ grid.innerHTML = '<div class="empty-state">Noch keine Einträge vorhanden.</div>'; return; }
+    grid.innerHTML = kpopEntries.map(k => `
+      <div class="kpop-card">
+        ${isDev ? `<button class="del-btn" style="position:absolute;top:8px;right:8px;" onclick="deleteKpop('${k.id}')" title="Löschen">✕</button>` : ''}
+        <div class="kpop-friend">${escapeHtml(k.friend)}</div>
+        <div class="kpop-idol">${escapeHtml(k.idol)}</div>
+        ${k.group ? `<div class="kpop-group">${escapeHtml(k.group)}</div>` : ''}
+        ${k.note ? `<div class="kpop-note">${escapeHtml(k.note)}</div>` : ''}
+      </div>
+    `).join('');
+  }
+
+  // ---------- Kalender ----------
+  let weekOffset = 0;
+  let calendarViewOwner = null; // null = eigener Kalender, sonst Username
+
+  function myEvents(){ return calendars[currentUser.username] || []; }
+  function eventsForOwner(owner){ return owner ? (calendars[owner] || []) : myEvents(); }
+
+  function toISODate(d){
+    const y=d.getFullYear(), m=String(d.getMonth()+1).padStart(2,'0'), day=String(d.getDate()).padStart(2,'0');
+    return `${y}-${m}-${day}`;
+  }
+  function getMonday(dateObj){
+    const d = new Date(dateObj);
+    const day = d.getDay();
+    const diff = (day === 0 ? -6 : 1 - day);
+    d.setDate(d.getDate() + diff);
+    d.setHours(0,0,0,0);
+    return d;
+  }
+  function currentMonday(){
+    const base = getMonday(new Date());
+    base.setDate(base.getDate() + weekOffset*7);
+    return base;
+  }
+  function parseTimeToMinutes(t){
+    if(!t) return null;
+    const parts = t.split(':').map(Number);
+    return parts[0]*60 + (parts[1]||0);
+  }
+  function formatEventDate(dateStr){
+    if(!dateStr) return '–';
+    const [y,m,d] = dateStr.split('-');
+    return `${d}.${m}.`;
+  }
+
+  const CAL_START_MIN = 6*60;
+  const CAL_END_MIN = 23*60;
+  const CAL_PX_PER_HOUR = 48;
+  const CAL_HEIGHT = ((CAL_END_MIN - CAL_START_MIN)/60) * CAL_PX_PER_HOUR;
+
+  function renderCalendarView(){
+    <script src="script.js"></script>
